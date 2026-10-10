@@ -45,32 +45,78 @@ describe('error handling and security headers', () => {
 });
 
 describe('POST /api/contact (existing contact form)', () => {
-  const valid = { name: 'Jo', email: 'jo@example.com', reason: 'Volunteer', message: 'Hello\nthere <b>' };
+  const valid = { name: '  Jo  ', email: ' jo@example.com ', reason: 'Volunteer', message: 'Hello\nthere <b>' };
+  const contact = (body) => request(app).post('/api/contact').send(body);
 
-  test('sends the message via the mailer', async () => {
+  test('sends the message with the same fields as the original server', async () => {
     const sendMail = mockMailer();
-    const res = await request(app).post('/api/contact').send(valid);
+    const res = await contact(valid);
 
     expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
+    expect(res.body).toEqual({ success: true, message: 'Your message has been sent successfully.' });
     expect(sendMail).toHaveBeenCalledTimes(1);
-    const mail = sendMail.mock.calls[0][0];
-    expect(mail).toMatchObject({ to: 'inbox@example.com', replyTo: 'jo@example.com' });
-    expect(mail.html).toContain('Hello<br>there &lt;b&gt;');
+    expect(sendMail.mock.calls[0][0]).toEqual({
+      from: { name: 'Community Rise Website', address: 'sender@example.com' },
+      to: 'inbox@example.com',
+      replyTo: 'jo@example.com',
+      subject: 'Community Rise — Volunteer (from Jo)',
+      text: 'Name: Jo\nEmail: jo@example.com\nReason: Volunteer\n\nMessage:\nHello\nthere <b>',
+      html: expect.stringContaining('Hello<br>there &lt;b&gt;'),
+    });
   });
 
-  test('returns 400 with an error field the frontend reads', async () => {
-    mockMailer();
-    const res = await request(app).post('/api/contact').send({ ...valid, email: 'bad' });
+  const invalid = [
+    ['a field is missing', { message: undefined }, 'All fields are required.'],
+    ['a field is blank', { name: '   ' }, 'All fields are required.'],
+    ['a field is not a string', { reason: 7 }, 'All fields are required.'],
+    ['name is too long', { name: 'a'.repeat(151) }, 'One or more fields are too long.'],
+    ['email is too long', { email: `${'a'.repeat(250)}@x.com` }, 'One or more fields are too long.'],
+    ['reason is too long', { reason: 'a'.repeat(201) }, 'One or more fields are too long.'],
+    ['message is too long', { message: 'a'.repeat(5001) }, 'Message must not exceed 5000 characters.'],
+    ['email is invalid', { email: 'bad' }, 'Please provide a valid email address.'],
+  ];
+
+  test.each(invalid)('returns 400 with data.error when %s', async (_label, overrides, error) => {
+    const sendMail = mockMailer();
+    const res = await contact({ ...valid, ...overrides });
     expect(res.status).toBe(400);
-    expect(res.body.error).toBe('Please provide a valid email address.');
+    expect(res.body.error).toBe(error);
+    expect(sendMail).not.toHaveBeenCalled();
   });
 
-  test('returns 500 when sending fails', async () => {
+  test('accepts a 5000-character non-ASCII message (20kb body limit)', async () => {
+    mockMailer();
+    const res = await contact({ ...valid, message: 'é'.repeat(5000) });
+    expect(res.status).toBe(200);
+  });
+
+  test('returns data.error for malformed JSON', async () => {
+    const res = await request(app).post('/api/contact').set('Content-Type', 'application/json').send('{"name":');
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Invalid JSON request body.');
+  });
+
+  test('returns data.error for an oversized body', async () => {
+    const res = await contact({ ...valid, message: 'a'.repeat(21 * 1024) });
+    expect(res.status).toBe(413);
+    expect(res.body.error).toBeDefined();
+  });
+
+  test('returns 500 with data.error when sending fails', async () => {
     jest.spyOn(mailer, 'sendMail').mockRejectedValue(new Error('SMTP down'));
-    const res = await request(app).post('/api/contact').send(valid);
+    const res = await contact(valid);
     expect(res.status).toBe(500);
     expect(res.body.error).toBe('Failed to send message. Please try again later.');
+  });
+
+  test('allows a CORS preflight from the frontend origin', async () => {
+    const res = await request(app)
+      .options('/api/contact')
+      .set('Origin', 'http://localhost:5173')
+      .set('Access-Control-Request-Method', 'POST')
+      .set('Access-Control-Request-Headers', 'content-type');
+    expect(res.status).toBe(204);
+    expect(res.headers['access-control-allow-origin']).toBe('http://localhost:5173');
   });
 });
 
