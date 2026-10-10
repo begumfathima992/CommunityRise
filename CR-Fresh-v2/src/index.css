@@ -1,0 +1,141 @@
+:root {
+  --sky: #89BFF8;
+  --sky-deep: #4E8FE0;
+  --pale: #E3F1FF;
+  --navajo: #FFDEAD;
+  --navajo-dark: #F5C77E;
+  --ink: #1B2A41;
+  --charcoal: #23303F;
+  --muted: #55677E;
+  --white: #FFFFFF;
+  --line: #C9E0F7;
+
+  --font-heading: 'Poppins', -apple-system, sans-serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--pale);
+  color: var(--charcoal);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+p { line-height: 1.7; }
+
+a { text-decoration: none; }
+
+/* ---- Brand buttons: navajowhite CTAs on sky/ink backgrounds ---- */
+.btn-navajo {
+  background-color: var(--navajo) !important;
+  border-color: var(--navajo) !important;
+  color: var(--ink) !important;
+  font-weight: 700;
+  padding: 0.7rem 1.6rem;
+  border-radius: 8px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+.btn-navajo:hover, .btn-navajo:focus {
+  background-color: var(--navajo-dark) !important;
+  border-color: var(--navajo-dark) !important;
+  color: var(--ink) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(27, 42, 65, 0.18);
+}
+
+.btn-sky {
+  background-color: var(--sky) !important;
+  border-color: var(--sky) !important;
+  color: var(--white) !important;
+  font-weight: 700;
+  padding: 0.7rem 1.6rem;
+  border-radius: 8px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+.btn-sky:hover, .btn-sky:focus {
+  background-color: var(--sky-deep) !important;
+  border-color: var(--sky-deep) !important;
+  color: var(--white) !important;
+  transform: translateY(-2px);
+}
+
+.btn-outline-sky {
+  background-color: transparent !important;
+  border: 2px solid var(--sky) !important;
+  color: var(--ink) !important;
+  font-weight: 700;
+  padding: 0.65rem 1.5rem;
+  border-radius: 8px;
+}
+.btn-outline-sky:hover {
+  background-color: var(--sky) !important;
+  color: var(--white) !important;
+}
+
+.section-eyebrow {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sky-deep);
+  font-weight: 700;
+}
+
+.bg-sky-brand { background-color: var(--sky); }
+.bg-pale-brand { background-color: var(--pale); }
+.bg-ink-brand { background-color: var(--sky-deep); color: var(--white); }
+
+.card-soft {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-soft:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(78, 143, 224, 0.16);
+}
+
+.hero-image-wrap {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.page-hero {
+  padding: 64px 0 56px;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+}
+
+.donate-tile {
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+.donate-tile:hover {
+  background: var(--sky) !important;
+  transform: translateY(-3px);
+}
