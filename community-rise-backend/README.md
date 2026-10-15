@@ -13,7 +13,7 @@ Stack: Node.js ≥ 20, Express 4, PostgreSQL 17, Sequelize + sequelize-cli (migr
 
 ```
 server.js                  Root entry kept for `pm2 start server.js` (imports src/server.js)
-.sequelizerc               Points sequelize-cli at src/
+.sequelizerc.cjs           Points sequelize-cli at src/ (npm db:* scripts pass --options-path)
 src/
   app.js                   Express app (no listen) — middleware, routes, error handling
   server.js                Connects to the DB, starts HTTP server, graceful shutdown
@@ -240,7 +240,7 @@ scp -i ~/Desktop/AZIZpem/aks-key.pem -r community-rise-backend ec2-user@18.130.4
 ssh -i ~/Desktop/AZIZpem/aks-key.pem ec2-user@18.130.42.159
 sudo mv /tmp/community-rise-backend /var/www/community-rise-backend
 cd /var/www/community-rise-backend
-npm ci --omit=dev
+npm ci --include=dev
 ```
 
 Leave out `node_modules` and your local `.env` when uploading.
@@ -256,11 +256,11 @@ Set `NODE_ENV=production`, the production `DATABASE_URL`, two new JWT secrets (d
 
 **3. Create the database and run migrations**
 
-sequelize-cli is a dev dependency, so run it with `npx`:
+sequelize-cli is a dev dependency, so install with `npm ci --include=dev`:
 
 ```bash
-NODE_ENV=production npx sequelize-cli db:migrate
-NODE_ENV=production ADMIN_EMAIL=… ADMIN_PASSWORD=… npx sequelize-cli db:seed:all   # optional
+NODE_ENV=production npm run db:migrate
+NODE_ENV=production ADMIN_EMAIL=… ADMIN_PASSWORD=… npm run db:seed   # optional
 ```
 
 Production connects with SSL. If your database doesn't support SSL (for example a local Postgres on the same server), you need to enable SSL on it or adjust `src/config/database.cjs`.
@@ -300,9 +300,33 @@ NODE_ENV=production pm2 start server.js --name community-rise-backend
 pm2 save
 ```
 
-For later deployments run `npm ci --omit=dev`, then `NODE_ENV=production npx sequelize-cli db:migrate`, then `pm2 restart community-rise-backend`. The server finishes in-flight requests and closes DB connections on `SIGTERM`/`SIGINT`.
+For later deployments run `npm ci --include=dev`, then `NODE_ENV=production npm run db:migrate`, then `pm2 restart community-rise-backend`. The server finishes in-flight requests and closes DB connections on `SIGTERM`/`SIGINT`.
 
 **6. Frontend**
 
 - Contact form: set `CONTACT_API_URL` in `CR-Fresh-v2/src/emailConfig.js` to the deployed `/communityrise-api/contact` URL. The site's origin must be listed in `CLIENT_URL`, because CORS now only allows those origins.
 - Auth pages: call `/communityrise-api/v1/auth/*` with `credentials: 'include'`. Email links point to `${CLIENT_URL}/verify-email?token=…` and `${CLIENT_URL}/reset-password?token=…`, so the frontend needs those two routes. They should send the token to `GET /verify-email` and `POST /reset-password`.
+
+---
+
+## Deployment on Render
+
+Create a **PostgreSQL** database and a **Web Service** in the same region (e.g. Frankfurt).
+
+| Setting | Value |
+| --- | --- |
+| Root Directory | `community-rise-backend` |
+| Build Command | `npm ci --include=dev` (the migration tool is a dev dependency) |
+| Start Command | `npm run db:migrate && npm start` (applies pending migrations on every deploy) |
+| Health Check Path | `/api/v1/health` |
+| Instance type | A paid instance. Render's free instances block outgoing SMTP, so no emails would send. |
+
+**Environment variables:**
+- `NODE_ENV=production`
+- `DATABASE_URL`: the database's **Internal** URL
+- `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`: use Render's **Generate**
+- `CLIENT_URL`: the website's origin
+- `GMAIL_USER`, `GMAIL_APP_PASSWORD` and `CONTACT_RECIPIENT`
+- If the database connection fails with an SSL certificate error, also set `DB_SSL_REJECT_UNAUTHORIZED=false`.
+
+**Node version:** `package.json` pins Node to `24.x`, so Render doesn't move to a new major version on its own.

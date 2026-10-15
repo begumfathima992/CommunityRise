@@ -7,14 +7,14 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "db:create": "sequelize-cli db:create",
-    "db:migrate": "sequelize-cli db:migrate",
-    "db:migrate:undo": "sequelize-cli db:migrate:undo",
-    "db:migrate:status": "sequelize-cli db:migrate:status",
-    "db:seed": "sequelize-cli db:seed:all",
-    "db:seed:undo": "sequelize-cli db:seed:undo:all",
-    "db:test:create": "NODE_ENV=test sequelize-cli db:create",
-    "db:test:migrate": "NODE_ENV=test sequelize-cli db:migrate",
+    "db:create": "sequelize-cli --options-path .sequelizerc.cjs db:create",
+    "db:migrate": "sequelize-cli --options-path .sequelizerc.cjs db:migrate",
+    "db:migrate:undo": "sequelize-cli --options-path .sequelizerc.cjs db:migrate:undo",
+    "db:migrate:status": "sequelize-cli --options-path .sequelizerc.cjs db:migrate:status",
+    "db:seed": "sequelize-cli --options-path .sequelizerc.cjs db:seed:all",
+    "db:seed:undo": "sequelize-cli --options-path .sequelizerc.cjs db:seed:undo:all",
+    "db:test:create": "NODE_ENV=test sequelize-cli --options-path .sequelizerc.cjs db:create",
+    "db:test:migrate": "NODE_ENV=test sequelize-cli --options-path .sequelizerc.cjs db:migrate",
     "pretest": "npm run db:test:migrate",
     "test": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
   },
@@ -44,6 +44,6 @@
   },
   "description": "Community Rise backend: contact form and authentication API",
   "engines": {
-    "node": ">=20"
+    "node": "24.x"
   }
 }
