@@ -50,6 +50,48 @@ export function passwordResetEmail({ fullName, url }) {
   return { subject, html, text };
 }
 
+function detailRows(rows) {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-size:14px;border-collapse:collapse;">
+    ${rows
+      .map(
+        ([label, value]) => `<tr>
+          <td style="padding:6px 12px 6px 0;color:#555;vertical-align:top;white-space:nowrap;"><strong>${escapeHtml(label)}</strong></td>
+          <td style="padding:6px 0;vertical-align:top;">${escapeHtml(value).replace(/\n/g, '<br>')}</td>
+        </tr>`,
+      )
+      .join('')}
+  </table>`;
+}
+
+export function tutorApplicationReceivedEmail({ fullName }) {
+  const subject = 'Thank you for offering to tutor with Community Rise';
+  const html = layout(
+    'Thank you for applying',
+    `<p>Hi ${escapeHtml(fullName)},</p>
+     <p>Thank you for offering to volunteer as a tutor with Community Rise. We've received your application.</p>
+     <p><strong>What happens next</strong></p>
+     <ol style="padding-left:20px;">
+       <li>We'll contact you to arrange an informal chat.</li>
+       <li>We'll ask for two references and arrange an enhanced DBS check if you don't already have one.</li>
+       <li>You'll complete safeguarding training and shadow a session before you start teaching.</li>
+     </ol>
+     <p style="font-size:13px;color:#555;">If you have any questions in the meantime, reply to this email or write to help@communityrise.org.uk.</p>`,
+  );
+  const text = `Hi ${fullName},\n\nThank you for offering to volunteer as a tutor with Community Rise. We've received your application.\n\nWhat happens next:\n1. We'll contact you to arrange an informal chat.\n2. We'll ask for two references and arrange an enhanced DBS check if you don't already have one.\n3. You'll complete safeguarding training and shadow a session before you start teaching.\n\nQuestions? Reply to this email or write to help@communityrise.org.uk.`;
+  return { subject, html, text };
+}
+
+export function tutorApplicationNotificationEmail({ application, details, reviewUrl }) {
+  const subject = `New tutor application — ${application.full_name}`;
+  const html = layout(
+    'New volunteer tutor application',
+    `${detailRows(details)}
+     ${button(reviewUrl, 'Review applications')}`,
+  );
+  const text = `${details.map(([label, value]) => `${label}: ${value}`).join('\n')}\n\nReview applications: ${reviewUrl}`;
+  return { subject, html, text };
+}
+
 export function contactEmail({ name, email, reason, message }) {
   return {
     subject: `Community Rise — ${reason} (from ${name})`,

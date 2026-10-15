@@ -34,7 +34,7 @@ function lockedError(lockedUntil) {
   );
 }
 
-export async function register({ full_name, email, signup_reason, password }, meta) {
+export async function register({ full_name, email, signup_reason, password, teaching_updates = false }, meta) {
   // paranoid: false so a soft-deleted account still reserves its email.
   const existing = await User.findOne({ where: { email }, paranoid: false });
   if (existing) throw emailTaken();
@@ -45,7 +45,15 @@ export async function register({ full_name, email, signup_reason, password }, me
   try {
     result = await sequelize.transaction(async (transaction) => {
       const user = await User.create(
-        { full_name, email, signup_reason, password_hash, consent_given_at: new Date() },
+        {
+          full_name,
+          email,
+          signup_reason,
+          password_hash,
+          consent_given_at: new Date(),
+          teaching_updates_opt_in: teaching_updates,
+          teaching_updates_opt_in_at: teaching_updates ? new Date() : null,
+        },
         { transaction },
       );
       const verificationToken = await createAuthToken(

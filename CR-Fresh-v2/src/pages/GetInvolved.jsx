@@ -5,10 +5,10 @@ import { useDonationModal } from '../context/DonationModalContext';
 import { IMAGES } from '../images';
 
 const PATHWAYS = [
-  { title: 'Volunteer', body: 'A single afternoon a month, or a regular weekly commitment — directly support our programmes on the ground alongside our team.' },
-  { title: 'Donate', body: 'Every contribution, large or small, makes a measurable and traceable difference to a family in genuine need.' },
-  { title: 'Partner', body: "Align your organisation's CSR goals with a trusted, community-rooted charity led by hands-on founders who understand Newham intimately." },
-  { title: 'Fundraise', body: "A sponsored event, a workplace collection, or a personal challenge — we'll support you every step of the way." },
+  { id: 'volunteer', title: 'Volunteer', body: 'A single afternoon a month, or a regular weekly commitment — directly support our programmes on the ground alongside our team.', link: { to: '/get-involved/volunteer-tutor', label: 'Volunteer as a tutor' } },
+  { id: 'donate', title: 'Donate', body: 'Every contribution, large or small, makes a measurable and traceable difference to a family in genuine need.' },
+  { id: 'partner', title: 'Partner', body: "Align your organisation's CSR goals with a trusted, community-rooted charity led by hands-on founders who understand Newham intimately." },
+  { id: 'fundraise', title: 'Fundraise', body: "A sponsored event, a workplace collection, or a personal challenge — we'll support you every step of the way." },
 ];
 
 const TIERS = [
@@ -52,12 +52,17 @@ export default function GetInvolved() {
         <Container>
           <Row className="g-4">
             {PATHWAYS.map((p) => (
-              <Col md={6} lg={3} key={p.title}>
+              <Col md={6} lg={3} key={p.title} id={p.id} className="anchor-target">
                 <RevealBox style={{ height: '100%' }}>
                   <Card className="card-soft h-100 p-3 text-center">
                     <Card.Body>
                       <Card.Title style={{ fontSize: 19 }}>{p.title}</Card.Title>
                       <Card.Text style={{ color: 'var(--muted)', fontSize: 14 }}>{p.body}</Card.Text>
+                      {p.link && (
+                        <Link to={p.link.to} className="link-brand" style={{ fontSize: 14 }}>
+                          {p.link.label} <span aria-hidden="true">→</span>
+                        </Link>
+                      )}
                     </Card.Body>
                   </Card>
                 </RevealBox>

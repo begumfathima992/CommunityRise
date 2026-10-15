@@ -136,7 +136,7 @@ Both cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` in production. When an
 
 | Method | Path | Auth | Body / query | Success | Notable errors |
 | --- | --- | --- | --- | --- | --- |
-| POST | `/register` | — | `full_name`, `email`, `signup_reason`, `password`, `confirm_password`, `consent` | `201` `{ user }` + cookies; sends a verification email | `409` email exists, `422`, `429` |
+| POST | `/register` | — | `full_name`, `email`, `signup_reason`, `password`, `confirm_password`, `consent`, optional `teaching_updates` (boolean, default `false`) | `201` `{ user }` + cookies; sends a verification email | `409` email exists, `422`, `429` |
 | POST | `/login` | — | `email`, `password` | `200` `{ user }` + cookies | `401` invalid email or password, `403` deactivated, `422`, `423` locked, `429` |
 | POST | `/refresh` | refresh cookie | — | `200` `{ user }` + new cookies (rotated) | `401` |
 | POST | `/logout` | refresh cookie (optional) | — | `200`, cookies cleared | — |
@@ -148,7 +148,32 @@ Both cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` in production. When an
 | POST | `/reset-password` | — | `token`, `password`, `confirm_password` | `200`; all sessions revoked | `400` invalid/expired, `422` |
 | PATCH | `/change-password` | access cookie | `current_password`, `new_password`, `confirm_password` | `200` + new cookies; other sessions revoked | `401`, `422` |
 
-The `user` object is `{ id, full_name, email, signup_reason, role, is_email_verified, email_verified_at, last_login_at, created_at }`. Password and token hashes are never returned.
+### Users — `/api/v1/users`
+
+| Method | Path | Auth | Body | Success | Notable errors |
+| --- | --- | --- | --- | --- | --- |
+| PATCH | `/me/preferences` | access cookie | `teaching_updates` (boolean) | `200` `{ user }` | `401`, `422` |
+
+`teaching_updates` records an explicit opt-in to emails about new teaching resources. It is stored with a timestamp (`teaching_updates_opt_in_at`) as evidence of consent. To get the mailing list:
+
+```sql
+SELECT full_name, email FROM users
+WHERE teaching_updates_opt_in AND is_active AND deleted_at IS NULL;
+```
+
+The `user` object is `{ id, full_name, email, signup_reason, role, is_email_verified, email_verified_at, teaching_updates_opt_in, last_login_at, created_at }`. Password and token hashes are never returned.
+
+### Volunteer tutor applications — `/api/v1/tutor-applications`
+
+| Method | Path | Auth | Body / query | Success | Notable errors |
+| --- | --- | --- | --- | --- | --- |
+| POST | `/` | — (linked to the account if logged in) | `full_name`, `email`, `phone`, `subjects[]`, `learner_groups[]`, `availability[]`, `delivery`, `experience`, `dbs_status`, `agree_to_checks: true`, `consent: true` | `201`; emails the applicant and the team inbox (`CONTACT_RECIPIENT`) | `409` open application already exists for this email, `422`, `429` (5 per hour) |
+| GET | `/` | admin | `?status=new\|contacted\|approved\|declined` | `200` `{ applications }` (newest first) | `401`, `403` |
+| PATCH | `/:id` | admin | `status` and/or `admin_notes` | `200` `{ application }` | `401`, `403`, `404`, `422` |
+
+- **Option keys** (subjects, learner groups and so on) live in `src/config/tutoring.js`, mirrored in the frontend's `src/data/tutoring.js`.
+- **Spam trap:** a hidden `website` field. Bots that fill it in get a normal `201`, but nothing is stored or emailed.
+- **Admins** review applications at `/admin/tutor-applications` on the website. Create the first admin with `npm run db:seed`.
 
 ### Other endpoints
 

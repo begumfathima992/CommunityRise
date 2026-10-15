@@ -1,10 +1,10 @@
 import { jest } from '@jest/globals';
 import app from '../src/app.js';
-import { AuthToken, RefreshToken, User, sequelize } from '../src/models/index.js';
+import { AuthToken, RefreshToken, TutorApplication, User, sequelize } from '../src/models/index.js';
 import { mailer } from '../src/services/mailer.service.js';
 import { hashPassword } from '../src/utils/password.js';
 
-export { app, sequelize, User, RefreshToken, AuthToken, mailer };
+export { app, sequelize, User, RefreshToken, AuthToken, TutorApplication, mailer };
 
 export const DEFAULT_PASSWORD = 'CorrectHorse42';
 
@@ -13,7 +13,7 @@ export async function resetDatabase() {
   if (!database.endsWith('_test')) {
     throw new Error(`Refusing to truncate non-test database "${database}"`);
   }
-  await sequelize.query('TRUNCATE TABLE auth_tokens, refresh_tokens, users RESTART IDENTITY CASCADE');
+  await sequelize.query('TRUNCATE TABLE tutor_applications, auth_tokens, refresh_tokens, users RESTART IDENTITY CASCADE');
 }
 
 export function mockMailer() {

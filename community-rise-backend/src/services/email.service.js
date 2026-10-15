@@ -1,6 +1,13 @@
 import env from '../config/env.js';
 import { mailer, sendInBackground } from './mailer.service.js';
-import { contactEmail, passwordResetEmail, verificationEmail } from '../templates/emails.js';
+import {
+  contactEmail,
+  passwordResetEmail,
+  tutorApplicationNotificationEmail,
+  tutorApplicationReceivedEmail,
+  verificationEmail,
+} from '../templates/emails.js';
+import { AVAILABILITY, DBS_STATUS, DELIVERY, LEARNER_GROUPS, TUTOR_SUBJECTS, labelsFor } from '../config/tutoring.js';
 
 const linkTo = (pathname, token) => {
   const url = new URL(pathname, env.appUrl);
@@ -26,4 +33,37 @@ export function sendContactMessage({ name, email, reason, message }) {
     replyTo: email,
     ...contactEmail({ name, email, reason, message }),
   });
+}
+
+const teamInbox = () => env.CONTACT_RECIPIENT || env.GMAIL_USER;
+
+export function sendTutorApplicationEmails(application) {
+  sendInBackground(
+    { to: application.email, ...tutorApplicationReceivedEmail({ fullName: application.full_name }) },
+    { type: 'tutor_application_received', applicationId: application.id },
+  );
+
+  const details = [
+    ['Name', application.full_name],
+    ['Email', application.email],
+    ['Phone', application.phone],
+    ['Subjects', labelsFor(TUTOR_SUBJECTS, application.subjects).join(', ')],
+    ['Learners', labelsFor(LEARNER_GROUPS, application.learner_groups).join(', ')],
+    ['Availability', labelsFor(AVAILABILITY, application.availability).join(', ')],
+    ['Teaching', DELIVERY[application.delivery]],
+    ['DBS', DBS_STATUS[application.dbs_status]],
+    ['Experience', application.experience],
+  ];
+  sendInBackground(
+    {
+      to: teamInbox(),
+      replyTo: application.email,
+      ...tutorApplicationNotificationEmail({
+        application,
+        details,
+        reviewUrl: new URL('/admin/tutor-applications', env.appUrl).toString(),
+      }),
+    },
+    { type: 'tutor_application_notification', applicationId: application.id },
+  );
 }

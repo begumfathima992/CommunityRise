@@ -92,6 +92,7 @@ describe('GET /api/v1/auth/me', () => {
       role: 'user',
       is_email_verified: false,
       email_verified_at: null,
+      teaching_updates_opt_in: false,
       last_login_at: expect.any(String),
       created_at: expect.any(String),
     });

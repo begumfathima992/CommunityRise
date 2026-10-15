@@ -48,6 +48,12 @@ export const resendVerificationLimiter = limiter({
   message: 'Too many verification email requests. Please try again later.',
 });
 
+export const tutorApplicationLimiter = limiter({
+  windowMs: ONE_HOUR,
+  limit: 5,
+  message: 'Too many applications from your connection. Please try again later.',
+});
+
 // Contact form: 5 submissions per IP every 15 minutes. Keeps the response
 // shape ({ error }) that the existing frontend reads.
 export const contactLimiter = rateLimit({

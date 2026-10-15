@@ -139,3 +139,261 @@ a { text-decoration: none; }
   background: var(--sky) !important;
   transform: translateY(-3px);
 }
+
+/* ---- Accessibility: visible keyboard focus ---- */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.dropdown-item:focus-visible,
+.nav-link:focus-visible {
+  outline: 3px solid var(--sky-deep);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* ---- Auth & account pages ---- */
+.auth-card,
+.auth-card:hover {
+  transform: none;
+  box-shadow: 0 10px 30px rgba(27, 42, 65, 0.06);
+}
+
+.form-label-brand {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  border-color: var(--sky-deep);
+  box-shadow: 0 0 0 0.25rem rgba(78, 143, 224, 0.3);
+}
+
+.form-check-input:checked {
+  background-color: var(--sky-deep);
+  border-color: var(--sky-deep);
+}
+
+.link-brand {
+  color: var(--sky-deep);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link-brand:hover { color: var(--ink); }
+
+.password-toggle {
+  min-width: 68px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  border-color: var(--bs-border-color);
+  background: var(--white);
+}
+.password-toggle:hover,
+.password-toggle:active {
+  background: var(--pale) !important;
+  color: var(--ink) !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+.password-checklist li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.password-checklist .rule-icon {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  font-weight: 700;
+}
+.password-checklist .rule-met { color: #1e7a46; }
+.password-checklist .rule-unmet { color: var(--muted); }
+
+.account-details {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 20px;
+  font-size: 15px;
+}
+.account-details dt { font-weight: 600; color: var(--muted); }
+.account-details dd { margin: 0; color: var(--ink); word-break: break-word; }
+
+@media (max-width: 575.98px) {
+  .account-details { grid-template-columns: 1fr; gap: 2px; }
+  .account-details dd { margin-bottom: 10px; }
+}
+
+/* ---- Get Involved: anchors, teaching resources, events ---- */
+.anchor-target { scroll-margin-top: 110px; }
+
+.jump-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.jump-links a {
+  display: inline-block;
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+.jump-links a:hover { background: var(--sky); border-color: var(--sky); color: var(--white); }
+
+.resource-topic {
+  font-family: var(--font-heading);
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--sky-deep);
+}
+
+.resource-meta {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.meta-badge {
+  background: var(--pale);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 0.4em 0.7em;
+}
+
+.topic-card .stretched-link { font-size: 15px; }
+
+.workshop-list {
+  padding-left: 1.2rem;
+  margin: 16px 0;
+  color: var(--charcoal);
+}
+.workshop-list li { margin-bottom: 6px; }
+.workshop-list li::marker { color: var(--sky-deep); }
+
+.signup-band { color: rgba(255, 255, 255, 0.9); }
+.signup-band-text { color: rgba(255, 255, 255, 0.88); font-size: 16px; }
+.signup-band-link { color: var(--navajo); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.signup-band-link:hover { color: var(--white); }
+.signup-band-error {
+  background: rgba(255, 255, 255, 0.95);
+  color: #842029;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.faq-accordion .accordion-button { font-family: var(--font-heading); font-weight: 600; color: var(--ink); font-size: 16px; }
+.faq-accordion .accordion-button:not(.collapsed) { background: var(--pale); box-shadow: none; }
+.faq-accordion .accordion-button:focus { box-shadow: 0 0 0 0.25rem rgba(78, 143, 224, 0.3); }
+.faq-accordion .accordion-item { border-color: var(--line); }
+
+/* ---- Volunteer tutor pathway ---- */
+.steps-list {
+  list-style: none;
+  counter-reset: step;
+  padding: 0;
+  margin: 0;
+}
+.steps-list li {
+  counter-increment: step;
+  position: relative;
+  padding: 0 0 22px 56px;
+}
+.steps-list li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: -2px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--navajo);
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.steps-list li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 40px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--line);
+}
+
+.choice-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  column-gap: 16px;
+}
+
+fieldset legend { float: none; width: auto; }
+
+/* Honeypot field: off-screen for people, still in the form for bots. */
+.hp-field {
+  position: absolute !important;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.admin-filters { gap: 6px; flex-wrap: wrap; }
+.admin-filters .nav-link {
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+  font-weight: 600;
+}
+.admin-filters .nav-link.active {
+  background: var(--sky-deep);
+  border-color: var(--sky-deep);
+  color: var(--white);
+}
+
+/* ---- Free tuition and IT courses ---- */
+.highlight-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.highlight-list li {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px 6px 34px;
+  position: relative;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+.highlight-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 14px;
+  color: #1e7a46;
+  font-weight: 800;
+}

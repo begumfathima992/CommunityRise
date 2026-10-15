@@ -45,6 +45,8 @@ export const registerSchema = z
     password,
     confirm_password: confirmPassword,
     consent: z.literal(true, { error: 'You must agree to the terms to create an account' }),
+    // Optional opt-in to teaching resource emails; never assumed.
+    teaching_updates: z.boolean({ error: 'Teaching updates must be true or false' }).optional().default(false),
   })
   .superRefine((data, ctx) => {
     if (data.password !== data.confirm_password) {

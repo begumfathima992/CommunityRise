@@ -35,6 +35,8 @@ export function initUser(sequelize) {
       last_login_at: { type: DataTypes.DATE, allowNull: true },
       failed_login_attempts: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
       locked_until: { type: DataTypes.DATE, allowNull: true },
+      teaching_updates_opt_in: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+      teaching_updates_opt_in_at: { type: DataTypes.DATE, allowNull: true },
     },
     {
       sequelize,
