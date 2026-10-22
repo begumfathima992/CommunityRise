@@ -48,6 +48,7 @@ Vite loads `.env`, `.env.local` and `.env.[mode]`. `npm run dev` uses developmen
 | Script | What it does |
 | --- | --- |
 | `npm run dev` | Start the dev server with the API proxy |
+| `npm run dev:render` | Same, but proxies `/api` to the Render backend (`https://communityrise22.onrender.com`) instead of a local one |
 | `npm run build` | Production build into `dist/` (uses `.env.production`) |
 | `npm run preview` | Serve the production build locally |
 | `npm test` | Run the Vitest + React Testing Library tests once |

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:render": "API_PROXY_TARGET=https://communityrise22.onrender.com vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
