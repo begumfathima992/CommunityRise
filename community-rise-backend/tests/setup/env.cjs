@@ -15,8 +15,13 @@ Object.assign(process.env, {
   JWT_REFRESH_SECRET: 'test-refresh-secret-0123456789-abcdefghijklmnop',
   CLIENT_URL: 'http://localhost:5173',
   REFRESH_COOKIE_PATH: '/api/v1/auth',
-  GMAIL_USER: 'sender@example.com',
-  GMAIL_APP_PASSWORD: 'not-a-real-password',
+  // Dummy provider settings: requests go to a non-existent host and tests
+  // either spy on mailer.sendMail or mock fetch, so nothing is ever sent.
+  RESEND_API_KEY: 're_test_not_a_real_key',
+  MAIL_FROM: 'Community Rise <noreply@example.com>',
+  RESEND_API_URL: 'https://resend.invalid',
   CONTACT_RECIPIENT: 'inbox@example.com',
+  GMAIL_USER: '',
+  GMAIL_APP_PASSWORD: '',
   LOG_LEVEL: 'silent',
 });

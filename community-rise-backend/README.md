@@ -2,7 +2,7 @@
 
 Node/Express API for Community Rise:
 
-- **Contact form** — `POST /api/contact` sends messages to help@communityrise.org.uk via Gmail SMTP (unchanged for the existing frontend).
+- **Contact form** — `POST /api/contact` sends messages to help@communityrise.org.uk via Resend (unchanged for the existing frontend).
 - **Authentication** — registration, login, email verification, password reset and session management under `/api/v1/auth`, backed by PostgreSQL.
 
 Stack: Node.js ≥ 20, Express 4, PostgreSQL 17, Sequelize + sequelize-cli (migrations only, never `sync()`), bcrypt, JWT, zod, helmet, pino, Jest + supertest.
@@ -98,9 +98,11 @@ All variables are validated with zod at startup. If any are missing or invalid, 
 | `JWT_REFRESH_SECRET` | **yes** | ≥ 32 chars, different from the access secret. Keys the HMAC-SHA-256 hash of stored refresh tokens. Changing it signs everyone out. |
 | `CLIENT_URL` | **yes** | Frontend origin(s), comma-separated. Used for CORS. The first one is used to build email links (`/verify-email?token=…`, `/reset-password?token=…`). |
 | `REFRESH_COOKIE_PATH` | no (default `/api/v1/auth`) | Path of the `refresh_token` cookie. It must match the path the **browser** uses (see Nginx below). |
-| `GMAIL_USER` | **yes** | Gmail / Workspace account that sends email |
-| `GMAIL_APP_PASSWORD` | **yes** | Google App Password for that account |
-| `CONTACT_RECIPIENT` | no | Where contact-form messages go (default `GMAIL_USER`) |
+| `RESEND_API_KEY` | for email | Resend API key. Emails go over HTTPS, so hosts that block SMTP don't matter. If missing, the server still starts but every email fails with a logged error. |
+| `MAIL_FROM` | for email | Sender, as `Name <address>` or `address`, on a domain verified in Resend (e.g. `Community Rise <noreply@communityrise.uk>`) |
+| `CONTACT_RECIPIENT` | **yes**\* | Inbox that receives contact form, free place and tutor application emails. \*`GMAIL_USER` is accepted as a fallback. |
+| `RESEND_API_URL` | no | Defaults to `https://api.resend.com`; only change it to point at a mock in tests |
+| `GMAIL_USER`, `GMAIL_APP_PASSWORD` | no | Legacy SMTP settings, no longer used for sending |
 | `LOG_LEVEL` | no | pino level (default `debug` in dev, `info` in production, `silent` in tests) |
 | `DB_SSL_CA_PATH` | no | Production only: path to a CA bundle for the database's SSL certificate (e.g. the AWS RDS bundle) |
 | `DB_SSL_REJECT_UNAUTHORIZED` | no | Production only: set to `false` to skip certificate verification (not recommended) |
@@ -217,17 +219,20 @@ The `user` object is `{ id, full_name, email, signup_reason, role, is_email_veri
 npm test
 ```
 
-This migrates `communityrise_test` and then runs the suites in `tests/` serially. Email sending is mocked, and the tests overwrite secrets and Gmail settings with dummy values, so they never send real email. Tables are truncated between tests.
+This migrates `communityrise_test` and then runs the suites in `tests/` serially. Email sending is mocked, and the tests use dummy secrets and a non-existent Resend address, so they never send real email. Tables are truncated between tests.
 
 ---
 
-## Gmail App Password
+## Email (Resend)
 
-Gmail and Google Workspace require an App Password for SMTP:
+All email goes through [Resend](https://resend.com)'s HTTPS API from `src/services/mailer.service.js`. That covers the contact form and free place requests, tutor applications, and verification and password reset emails. There's no SMTP, so it works on hosts that block mail ports.
 
-1. Turn on **2-Step Verification** for help@communityrise.org.uk (Google Account → Security).
-2. Go to **https://myaccount.google.com/apppasswords** while signed in as that account.
-3. Create an App Password (e.g. "Community Rise Website") and copy the 16-character value into `GMAIL_APP_PASSWORD`.
+1. Create a Resend account and **add the domain** `communityrise.uk`. Choose the EU region if offered.
+2. Add the DNS records Resend shows **at your DNS host**. These are new records alongside the existing ones; don't change or remove your current MX or SPF records.
+3. Create an **API key** with *Sending access* and put it in `RESEND_API_KEY`.
+4. Set `MAIL_FROM` to an address on the verified domain, e.g. `Community Rise <noreply@communityrise.uk>`.
+
+Each request to Resend times out after 5 seconds. A failed or timed-out send is logged as `Failed to send email` / `Failed to send contact email`, with the provider's reason. The API key is never logged. `/api/contact` then returns its normal 500 JSON response.
 
 ---
 
@@ -252,7 +257,7 @@ cp .env.example .env
 nano .env
 ```
 
-Set `NODE_ENV=production`, the production `DATABASE_URL`, two new JWT secrets (do not reuse the development ones), `CLIENT_URL` set to the live site origin, the Gmail values, and `REFRESH_COOKIE_PATH` (see step 4).
+Set `NODE_ENV=production`, the production `DATABASE_URL`, two new JWT secrets (do not reuse the development ones), `CLIENT_URL` set to the live site origin(s), the Resend values (`RESEND_API_KEY`, `MAIL_FROM`, `CONTACT_RECIPIENT`), and `REFRESH_COOKIE_PATH` (see step 4).
 
 **3. Create the database and run migrations**
 
@@ -319,14 +324,14 @@ Create a **PostgreSQL** database and a **Web Service** in the same region (e.g. 
 | Build Command | `npm ci --include=dev` (the migration tool is a dev dependency) |
 | Start Command | `npm run db:migrate && npm start` (applies pending migrations on every deploy) |
 | Health Check Path | `/api/v1/health` |
-| Instance type | A paid instance. Render's free instances block outgoing SMTP, so no emails would send. |
+| Instance type | Free works for email: it's sent through Resend over HTTPS. A paid instance avoids the idle spin-down delay. |
 
 **Environment variables:**
 - `NODE_ENV=production`
 - `DATABASE_URL`: the database's **Internal** URL
 - `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`: use Render's **Generate**
 - `CLIENT_URL`: the website's origin
-- `GMAIL_USER`, `GMAIL_APP_PASSWORD` and `CONTACT_RECIPIENT`
+- `RESEND_API_KEY`, `MAIL_FROM` and `CONTACT_RECIPIENT`
 - If the database connection fails with an SSL certificate error, also set `DB_SSL_REJECT_UNAUTHORIZED=false`.
 
 **Node version:** `package.json` pins Node to `24.x`, so Render doesn't move to a new major version on its own.

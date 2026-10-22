@@ -28,6 +28,23 @@ const clientUrls = z
     return origins;
   });
 
+// Blank values (e.g. an empty variable in a hosting dashboard) count as unset.
+const optional = (schema) => z.preprocess((v) => (v === '' ? undefined : v), schema.optional());
+
+// "Community Rise <noreply@communityrise.uk>" or "noreply@communityrise.uk"
+const mailFrom = z
+  .string()
+  .trim()
+  .transform((value, ctx) => {
+    const match = value.match(/^(?:"?([^"<>]*?)"?\s*<([^<>\s]+)>|([^<>\s]+))$/);
+    const address = match && (match[2] || match[3]);
+    if (!address || !z.email().safeParse(address).success) {
+      ctx.addIssue({ code: 'custom', message: 'Use "Name <address@domain>" or "address@domain"' });
+      return z.NEVER;
+    }
+    return { name: match[1]?.trim() || undefined, address };
+  });
+
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -38,15 +55,27 @@ const envSchema = z
     JWT_ACCESS_SECRET: z.string().min(32, 'Must be at least 32 characters'),
     JWT_REFRESH_SECRET: z.string().min(32, 'Must be at least 32 characters'),
     CLIENT_URL: clientUrls,
-    GMAIL_USER: z.email(),
-    GMAIL_APP_PASSWORD: z.string().min(1),
-    CONTACT_RECIPIENT: z.email().optional(),
+    // Email is sent through Resend's HTTPS API (SMTP is blocked on some hosts).
+    // Missing settings don't stop the server: sending fails with a logged error.
+    RESEND_API_KEY: optional(z.string().min(1)),
+    MAIL_FROM: optional(mailFrom),
+    RESEND_API_URL: z.url().default('https://api.resend.com'),
+    // Team inbox for contact form and tutor application notifications.
+    CONTACT_RECIPIENT: optional(z.email()),
+    // Legacy: GMAIL_USER is still used as the team inbox if CONTACT_RECIPIENT
+    // is not set. GMAIL_APP_PASSWORD is no longer used.
+    GMAIL_USER: optional(z.email()),
+    GMAIL_APP_PASSWORD: optional(z.string()),
     REFRESH_COOKIE_PATH: z.string().startsWith('/').default('/api/v1/auth'),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).optional(),
   })
   .refine((e) => e.JWT_ACCESS_SECRET !== e.JWT_REFRESH_SECRET, {
     message: 'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different',
     path: ['JWT_REFRESH_SECRET'],
+  })
+  .refine((e) => e.CONTACT_RECIPIENT || e.GMAIL_USER, {
+    message: 'Set CONTACT_RECIPIENT (the inbox that receives contact form messages)',
+    path: ['CONTACT_RECIPIENT'],
   });
 
 const parsed = envSchema.safeParse(process.env);

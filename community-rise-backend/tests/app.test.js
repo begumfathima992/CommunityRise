@@ -56,7 +56,7 @@ describe('POST /api/contact (existing contact form)', () => {
     expect(res.body).toEqual({ success: true, message: 'Your message has been sent successfully.' });
     expect(sendMail).toHaveBeenCalledTimes(1);
     expect(sendMail.mock.calls[0][0]).toEqual({
-      from: { name: 'Community Rise Website', address: 'sender@example.com' },
+      from: { name: 'Community Rise Website' },
       to: 'inbox@example.com',
       replyTo: 'jo@example.com',
       subject: 'Community Rise — Volunteer (from Jo)',

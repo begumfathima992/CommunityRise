@@ -1,4 +1,5 @@
 import logger from '../config/logger.js';
+import { describeEmailError } from '../services/mailer.service.js';
 import { sendContactMessage } from '../services/email.service.js';
 import { validateContactForm } from '../validators/contact.validators.js';
 
@@ -17,11 +18,8 @@ export async function submitContact(req, res) {
       message: 'Your message has been sent successfully.',
     });
   } catch (err) {
-    // Keep SMTP details in server logs only.
-    logger.error(
-      { err: { message: err.message, code: err.code, command: err.command, responseCode: err.responseCode } },
-      'Failed to send contact email',
-    );
+    // Keep provider details in server logs only.
+    logger.error({ err: describeEmailError(err) }, 'Failed to send contact email');
     const failure = 'Failed to send message. Please try again later.';
     return res.status(500).json({ success: false, message: failure, error: failure });
   }

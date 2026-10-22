@@ -1,6 +1,7 @@
 import env from './config/env.js';
 import logger from './config/logger.js';
 import { sequelize } from './models/index.js';
+import { isEmailConfigured } from './services/mailer.service.js';
 import app from './app.js';
 
 const SHUTDOWN_TIMEOUT_MS = 10000;
@@ -12,6 +13,10 @@ async function start() {
   } catch (err) {
     logger.fatal({ err: { message: err.message } }, 'Unable to connect to the database');
     process.exit(1);
+  }
+
+  if (!isEmailConfigured()) {
+    logger.warn('Email is not configured (RESEND_API_KEY and MAIL_FROM): emails will fail to send');
   }
 
   const server = app.listen(env.PORT, () => {

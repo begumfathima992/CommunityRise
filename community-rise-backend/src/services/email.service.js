@@ -9,6 +9,8 @@ import {
 } from '../templates/emails.js';
 import { AVAILABILITY, DBS_STATUS, DELIVERY, LEARNER_GROUPS, TUTOR_SUBJECTS, labelsFor } from '../config/tutoring.js';
 
+const teamInbox = () => env.CONTACT_RECIPIENT || env.GMAIL_USER;
+
 const linkTo = (pathname, token) => {
   const url = new URL(pathname, env.appUrl);
   url.searchParams.set('token', token);
@@ -28,14 +30,12 @@ export function sendPasswordResetEmail(user, token) {
 // Awaited: the contact form reports delivery failures back to the visitor.
 export function sendContactMessage({ name, email, reason, message }) {
   return mailer.sendMail({
-    from: { name: 'Community Rise Website', address: env.GMAIL_USER },
-    to: env.CONTACT_RECIPIENT || env.GMAIL_USER,
+    from: { name: 'Community Rise Website' },
+    to: teamInbox(),
     replyTo: email,
     ...contactEmail({ name, email, reason, message }),
   });
 }
-
-const teamInbox = () => env.CONTACT_RECIPIENT || env.GMAIL_USER;
 
 export function sendTutorApplicationEmails(application) {
   sendInBackground(
